@@ -1,0 +1,31 @@
+{
+  "name": "appc-app-preview-cli-hook",
+  "version": "0.1.0",
+  "description": "An appcelerator cli hook for deploying builds to appcelerator app preview",
+  "scripts": {
+    "postinstall": "node bin/install"
+  },
+  "bin": {
+    "appc-app-preview": "./bin/install"
+  },
+  "keywords": [
+    "titanium",
+    "cli",
+    "appcelerator",
+    "hook",
+    "app preview",
+    "labs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeffbonnes/appc-app-preview-cli-hook"
+  },
+  "author": "Jeff Bonnes <jeffb@geeksinc.com.au>",
+  "license": "MIT",
+  "dependencies": {
+    "underscore": "~1.6.0",
+    "request": "~2.34.0",
+    "fields": "~0.1.12",
+    "node-appc": "~0.2.0"
+  }
+}
