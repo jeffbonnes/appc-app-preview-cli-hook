@@ -15,7 +15,7 @@ You need `--unsafe-perm` to auto-install the hook.
 
 ## Usage
 
-Use the `--app-preview` flag with the appcelerator cli to upload to installr. For example:
+Use the `--app-preview` flag with the appcelerator cli to upload to app preview. For example:
 
 ~~~
 $ appc run -p ios -T dist-adhoc --app-preview
@@ -27,7 +27,13 @@ Set release notes using `--release-notes` flag. For example:
 $ appc run -p ios -T dist-adhoc --app-preview --release-notes='New build with awesome features'
 ~~~
 
-You can also set notify and add using `--notify` and `--add` flags. For example:
+You can invite testers by email address using the `--invite` flag. For example:
+
+~~~
+$ appc run -p ios -T dist-adhoc --app-preview --invite=jeffb@geeksinc.com.au,devices@gameshape.com
+~~~
+
+You can also set if you want to notify and add teams that have previously been invites to the app using `--notify` and `--add` flags. 'add' will give the team access, but they will not get an email.  For example:
 
 ~~~
 $ appc run -p ios -T dist-adhoc --app-preview --release-notes='New build' --notify='Devs,QA' --add='Legal'

@@ -25,14 +25,9 @@ exports.init = function(_logger, _config, cli, _appc) {
 function configure(data, finished) {
   config = {};
   config.releaseNotes = data.cli.argv['release-notes'];
-
-  if (!config.add) {
-    config.add = data.cli.argv['add'];
-  }
-
-  if (!config.notify) {
-    config.notify = data.cli.argv['notify'];
-  }
+  config.add = data.cli.argv['add'];
+  config.notify = data.cli.argv['notify'];
+  config.emails = data.cli.argv['invite'];
 
   if (!config.releaseNotes || !config.notify) {
     doPrompt(finished);
@@ -56,7 +51,7 @@ function doPrompt(finishedFunction) {
   if (config.notify === undefined) {
     f.notify = fields.select({
       title: "Notify",
-      desc: "Notify testers on upload.",
+      desc: "Notify previous testers on upload.",
       promptLabel: "(y,n)",
       options: ['__y__es', '__n__o']
     });
@@ -80,14 +75,15 @@ var onUploadComplete = function(err, httpResponse, body) {
       logger.error('Error uploading to app preview, status code=' + httpResponse.statusCode);
     }
     logger.info("App uploaded successfully.");
-    // check if we want to invite testers
-    if (config.default_testers) {
-      logger.info('Adding tester(s) ' + config.default_testers + ' to latest build');
+    // check if we want to invite new testers
+    if (config.emails) {
+      logger.info('Adding tester(s) ' + config.emails + ' to latest build');
       var resp = JSON.parse(body);
       var r = request.post({
         jar: j,
         url: SERVER + '/apps/' + resp.appData.id + '/builds/' + resp.appData.latestBuild.id + '/team.json'
       }, function optionalCallback(err, httpResponse, body) {
+        console.log( body );
         if (err) {
           logger.error(err);
         } else {
@@ -95,7 +91,7 @@ var onUploadComplete = function(err, httpResponse, body) {
         }
       });
       var form = r.form();
-      form.append('emails', config.default_testers);
+      form.append('emails', config.emails);
     }
   }
 }
