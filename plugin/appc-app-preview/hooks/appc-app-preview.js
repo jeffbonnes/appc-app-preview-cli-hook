@@ -8,7 +8,7 @@ var _ = require("underscore"),
 
 exports.cliVersion = '>=3.2';
 
-var logger, platform, config, appc, appcConfig, j;
+var logger, platform, config, appc, appcConfig, j, build_file;
 
 j = request.jar();
 
@@ -83,7 +83,7 @@ var onUploadComplete = function(err, httpResponse, body) {
         jar: j,
         url: SERVER + '/apps/' + resp.appData.id + '/builds/' + resp.appData.latestBuild.id + '/team.json'
       }, function optionalCallback(err, httpResponse, body) {
-        console.log( body );
+        console.log(body);
         if (err) {
           logger.error(err);
         } else {
@@ -118,18 +118,16 @@ function upload2AppPreview(data, finished) {
 
   var r = request.post(obj, onUploadComplete);
 
-  var build_file = afs.resolvePath(path.join(data.buildManifest.outputDir, data.buildManifest.name + "." + (data.cli.argv.platform === "android" ? "apk" : "ipa")));
-
   var form = r.form();
   var file = fs.createReadStream(build_file);
   var totalSize = fs.statSync(build_file).size;
   var bytesRead = 0;
   var bar = new appc.progress('[INFO]  :paddedPercent [:bar] :etas', {
-    width : 70,
+    width: 70,
     total: totalSize
   });
   file.on('data', function(chunk) {
-    bar.tick( chunk.length );
+    bar.tick(chunk.length);
   });
   form.append('qqfile', file);
   form.append('releaseNotes', config.releaseNotes);
@@ -140,14 +138,22 @@ function upload2AppPreview(data, finished) {
 }
 
 function validate(data) {
+
   platform = data.cli.argv.platform;
 
-  if (data.buildManifest.outputDir === undefined && data.iosBuildDir === undefined) {
-    logger.error("Output directory must be defined to use --app-preview flag");
-    return;
-  }
   if (['android', 'ios'].indexOf(platform) === -1) {
     logger.error("Only android and ios support with --app-preview flag");
     return;
   }
+
+  if (data.cli.argv.platform === "android") {
+    build_file = data.apkFile
+  } else {
+    if (data.buildManifest.outputDir === undefined && data.iosBuildDir === undefined) {
+      logger.error("Output directory must be defined to use --app-preview flag");
+      return;
+    }
+    build_file = afs.resolvePath(path.join(data.buildManifest.outputDir, data.buildManifest.name + ".ipa"));
+  }
+
 }

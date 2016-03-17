@@ -15,10 +15,15 @@ You need `--unsafe-perm` to auto-install the hook.
 
 ## Usage
 
-Use the `--app-preview` flag with the appcelerator cli to upload to app preview. For example:
+Use the `--app-preview` flag with the appcelerator cli to upload your APK or IPA to app preview. For example:
 
 ~~~
 $ appc run -p ios -T dist-adhoc --app-preview
+~~~
+or
+
+~~~
+$ appc run -p android -b --app-preview
 ~~~
 
 Set release notes using `--release-notes` flag. For example:
