@@ -10,7 +10,7 @@ var xspawn = function(cmd,args) {
   return spawn(cmd,args);
 }
 
-var hooks = xspawn('ti', ['config','-a','paths.hooks',path.join( __dirname ,'..', 'plugin','appc-app-preview','hooks')]);
+var hooks = xspawn('appc', 'ti', ['config','-a','paths.hooks',path.join( __dirname ,'..', 'plugin','appc-app-preview','hooks')]);
 hooks.stderr.pipe(process.stderr);
 hooks.on("exit", function(code) {
   code === 0 && console.log("appc-app-preview-cli-hook installed");
