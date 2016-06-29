@@ -8,7 +8,7 @@ var _ = require("underscore"),
 
 exports.cliVersion = '>=3.2';
 
-var logger, platform, config, appc, appcConfig, j, build_file;
+var logger, platform, config, appc, appcConfig, j, build_file, busy;
 
 j = request.jar();
 
@@ -68,38 +68,53 @@ function doPrompt(finishedFunction) {
 }
 
 var onUploadComplete = function(err, httpResponse, body) {
+  var resp = {};
   if (err) {
     logger.error(err);
   } else {
     if (httpResponse.statusCode != 200) {
       logger.error('Error uploading to app preview, status code=' + httpResponse.statusCode);
+      return;
+    } else {
+      resp = JSON.parse(body);
+      if (resp.result != "success") {
+        logger.error(resp.message);
+        return;
+      }
     }
     logger.info("App uploaded successfully.");
+    resp = JSON.parse(body);
     // check if we want to invite new testers
     if (config.emails) {
       logger.info('Adding tester(s) ' + config.emails + ' to latest build');
-      var resp = JSON.parse(body);
       var r = request.post({
         jar: j,
         url: SERVER + '/apps/' + resp.appData.id + '/builds/' + resp.appData.latestBuild.id + '/team.json'
       }, function optionalCallback(err, httpResponse, body) {
-        console.log(body);
         if (err) {
           logger.error(err);
+          showFinalUrl(resp);
         } else {
           logger.info("Tester(s) invited successfully.");
+          showFinalUrl(resp);
         }
       });
       var form = r.form();
       form.append('emails', config.emails);
+    } else {
+      showFinalUrl(resp);
     }
   }
+}
+
+function showFinalUrl(resp) {
+  logger.info('Open ' + SERVER + '/dashboard/index#/apps/' + resp.appData.id + ' to configure your app in App Preview.')
 }
 
 function upload2AppPreview(data, finished) {
   validate(data);
   var sid = process.env.APPC_SESSION_SID;
-  logger.info('Uploading app to App Preview');
+  logger.info('Uploading app to App Preview...please wait...');
   var cookie = request.cookie('connect.sid=' + sid);
   j.setCookie(cookie, SERVER);
 
@@ -122,12 +137,14 @@ function upload2AppPreview(data, finished) {
   var file = fs.createReadStream(build_file);
   var totalSize = fs.statSync(build_file).size;
   var bytesRead = 0;
-  var bar = new appc.progress('[INFO]  :paddedPercent [:bar] :etas', {
-    width: 70,
-    total: totalSize
-  });
+  var lastPercent = 0;
   file.on('data', function(chunk) {
-    bar.tick(chunk.length);
+    bytesRead += chunk.length;
+    var currentPercent = Math.round((bytesRead / totalSize) * 100);
+    if (currentPercent != lastPercent && currentPercent % 5 == 0) {
+      logger.info("uploaded " + currentPercent + "%");
+      lastPercent = currentPercent;
+    }
   });
   form.append('qqfile', file);
   form.append('releaseNotes', config.releaseNotes);
